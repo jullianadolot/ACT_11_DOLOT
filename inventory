@@ -1,0 +1,2 @@
+[my_servers]
+workstation ansible_ssh_user=qjmdolot

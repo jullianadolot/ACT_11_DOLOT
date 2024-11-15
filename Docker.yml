@@ -1,0 +1,62 @@
+---
+
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Install required packages for Debian
+      apt:
+        name: 
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker from default repositories (Debian)
+      apt:
+        name: docker.io
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Start and enable Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Python pip for Debian
+      apt:
+        name: python3-pip
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker Python module
+      pip:
+        name: docker
+        executable: pip3  # Use pip3 for Python 3
+        state: present
+
+    - name: Create Dockerfile directory
+      file:
+        path: ~/docker_project
+        state: directory
+
+    - name: Copy Dockerfile to the control node
+      copy:
+        src: Dockerfile
+        dest: ~/docker_project/Dockerfile
+
+    - name: Build Docker image
+      docker_image:
+        path: ~/docker_project
+        name: my-nginx-image
+        state: present
+
+    - name: Run Docker container
+      docker_container:
+        name: my-nginx-container
+        image: my-nginx-image
+        state: started
+        ports:
+          - "80:80"
